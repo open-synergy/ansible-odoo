@@ -62,6 +62,22 @@
   tags:
     - odoo_project
 
+- name: Clone Additional Repo
+  become: yes
+  become_user: "{{ odoo_user }}"
+  git:  repo={{ item.repo_name }}
+        dest={{ item.dest_path }}
+        version={{ item.repo_branch | string }}
+        update={{ project_path.stat.exists == False and 'yes'
+                  or (odoo_repo_update and 'yes' or 'no') }}
+        depth={{ odoo_repo_depth }}
+  with_items:
+      "{{ odoo_additional_repo }}"
+  when: odoo_install_type != 'pip' and odoo_repo_type == 'git' and odoo_repo_url
+  notify: Restart Odoo
+  tags:
+    - odoo_project
+
 - name: Create odoo data dir directory
   file: path={{ odoo_config_data_dir }} state=directory
         owner={{ odoo_user }} group={{ odoo_user }} force=yes
